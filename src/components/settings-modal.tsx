@@ -1,19 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Settings } from "@/lib/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Save } from "lucide-react";
+import { Eye, EyeOff, Save, X } from "lucide-react";
 
 interface SettingsModalProps {
   open: boolean;
@@ -39,21 +33,47 @@ export function SettingsModal({
     setPrevOpen(open);
   }
 
+  const handleClose = useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, handleClose]);
+
   const handleSave = () => {
     onSave(local);
     onOpenChange(false);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#12121a] border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            Settings
-          </DialogTitle>
-        </DialogHeader>
+  if (!open) return null;
 
-        <div className="space-y-5 py-2">
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0 duration-200"
+        onClick={handleClose}
+      />
+      <div className="relative z-10 w-full max-w-lg mx-4 bg-[#12121a] border border-white/10 rounded-xl text-white max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-4 pb-0">
+          <h2 className="text-lg font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+            Settings
+          </h2>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-zinc-500 hover:text-white transition-colors rounded-lg p-1 hover:bg-white/10"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-5 p-4">
           <div className="space-y-2">
             <Label className="text-sm text-zinc-300">LinkModel.ai API Key</Label>
             <div className="relative">
@@ -187,7 +207,7 @@ export function SettingsModal({
             Save Settings
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
