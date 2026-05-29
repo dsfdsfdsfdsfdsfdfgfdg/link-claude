@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { Chat, Message, Settings } from "@/lib/types";
 import { loadChats, saveChats, loadSettings, saveSettings } from "@/lib/storage";
@@ -17,6 +17,10 @@ export function useChatStore() {
   const [streamingText, setStreamingText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const chatsRef = useRef(chats);
+  useEffect(() => {
+    chatsRef.current = chats;
+  }, [chats]);
 
   const setChatsAndSave = useCallback(
     (updater: Chat[] | ((prev: Chat[]) => Chat[])) => {
@@ -123,7 +127,7 @@ export function useChatStore() {
       const abortController = new AbortController();
       abortRef.current = abortController;
 
-      const currentChat = chats.find((c) => c.id === targetChatId);
+      const currentChat = chatsRef.current.find((c) => c.id === targetChatId);
       const allMessages = [...(currentChat?.messages || []), userMessage];
 
       let accumulated = "";
@@ -167,7 +171,7 @@ export function useChatStore() {
         abortController.signal
       );
     },
-    [activeChatId, chats, settings, setChatsAndSave]
+    [activeChatId, settings, setChatsAndSave]
   );
 
   const regenerateLastMessage = useCallback(async () => {

@@ -23,9 +23,6 @@ export default function Home() {
   };
 
   const handleSend = (content: string) => {
-    if (!store.activeChatId) {
-      store.createChat();
-    }
     store.sendMessage(content);
   };
 
